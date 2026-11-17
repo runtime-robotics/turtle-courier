@@ -1,0 +1,85 @@
+#VRML_SIM R2025a utf8
+# template language: javascript
+PROTO CourierTurtle [
+  field SFVec3f translation 0 0 0
+  field SFRotation rotation 0 0 1 0
+] {
+  Robot {
+    translation IS translation
+    rotation IS rotation
+    name "TurtleBro practice"
+    controller "bridge"
+    supervisor TRUE
+    children [
+      Pose {
+        translation 0 0 .063
+        children [
+          Shape {
+            appearance PBRAppearance { baseColor .09 .16 .22 roughness .65 metalness 0 }
+            geometry Cylinder { radius .132 height .060 }
+          }
+        ]
+      }
+      Pose {
+        translation 0 0 .105
+        children [
+          Shape {
+            appearance PBRAppearance { baseColor .10 .46 .74 roughness .65 metalness 0 }
+            geometry Cylinder { radius .125 height .027 }
+          }
+        ]
+      }
+      Pose {
+        translation .1 0 .145
+        children [
+          Shape {
+            appearance PBRAppearance { baseColor .15 .15 .16 roughness .65 metalness 0 }
+            geometry Box { size .04 .06 .036 }
+          }
+        ]
+      }
+      %< for (const [side, y] of [["left", .0925], ["right", -.0925]]) { >%
+      HingeJoint {
+        jointParameters HingeJointParameters { axis 0 1 0 anchor 0 %<= y >% .0325 }
+        device [
+          RotationalMotor { name "%<= side >% motor" maxVelocity 8 maxTorque 2 }
+          PositionSensor { name "%<= side >% encoder" }
+        ]
+        endPoint Solid {
+          name "%<= side >% wheel"
+          translation 0 %<= y >% .0325
+          rotation 1 0 0 1.57079632679
+          children [
+            Shape {
+              appearance PBRAppearance { baseColor .035 .035 .035 roughness 1 metalness 0 }
+              geometry Cylinder { radius .0325 height .023 subdivision 32 }
+            }
+          ]
+          contactMaterial "tire"
+          boundingObject Cylinder { radius .0325 height .012 subdivision 32 }
+          physics Physics { density -1 mass .045 }
+        }
+      }
+      %< } >%
+      Camera { name "camera" translation .1 0 .145 width 320 height 240 fieldOfView 1.4 }
+      InertialUnit { name "imu" }
+      DistanceSensor {
+        name "front sonar"
+        translation .115 0 .065
+        type "sonar"
+        numberOfRays 5
+        aperture .24
+        lookupTable [ 0 0 0, 1.5 1.5 0 ]
+      }
+    ]
+    boundingObject Group {
+      children [
+        Pose { translation 0 0 .065 children [ Cylinder { radius .132 height .062 } ] }
+        Pose { translation -.090 0 .012 children [ Sphere { radius .012 } ] }
+        Pose { translation .090 0 .013 children [ Sphere { radius .012 } ] }
+      ]
+    }
+    contactMaterial "caster"
+    physics Physics { density -1 mass 1.12 centerOfMass [ 0 0 .055 ] }
+  }
+}
